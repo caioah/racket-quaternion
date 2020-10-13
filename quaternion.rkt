@@ -138,9 +138,9 @@
                     (define (sqrt q) (rexp (r/ (rlog q) 2)))
                     (define (+ q . rem)
                       (cond [(empty? rem) q]
-                            [(and (quaternion? (car rem)) (car rem))
-                             => (λ (x) (apply r+ (apply quaternion (map racket:+ (dict-values q) (dict-values x)))
-                                              (cdr rem)))]
+                            [(quaternion? (car rem))
+                             (apply r+ (apply quaternion (map racket:+ (dict-values q) (dict-values (car rem))))
+                                    (cdr rem))]
                             [(not (real? (car rem)))
                              (apply r+ (struct-copy quaternion q [r (racket:+ (quaternion-r q) (real-part (car rem)))]
                                                     [i (racket:+ (quaternion-i q) (imag-part (car rem)))]) (cdr rem))]
