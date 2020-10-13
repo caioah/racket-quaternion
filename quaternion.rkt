@@ -1,6 +1,6 @@
-#lang racket
 (require racket/generic
-         (prefix-in racket: (only-in racket conjugate magnitude angle exp log expt sqr sqrt zero? * + - /)))
+         (prefix-in racket: (only-in racket conjugate magnitude angle exp log expt sqr sqrt zero? * + - / =)))
+(provide (struct-out quaternion) quaternion=? make-quaternion conjugate magnitude angle exp log expt sqr sqrt zero? * + - / =)
 (struct quaternion (r i j k)
   #:transparent #:mutable
   #:methods gen:dict
@@ -40,14 +40,14 @@
      (dref q pos))]
   #:methods gen:equal+hash
   [(define (equal-proc a b callback)
-     (and (= (quaternion-r a) (quaternion-r b))
-          (= (quaternion-i a) (quaternion-i b))
-          (= (quaternion-j a) (quaternion-j b))
-          (= (quaternion-k a) (quaternion-k b))))
+     (and (racket:= (quaternion-r a) (quaternion-r b))
+          (racket:= (quaternion-i a) (quaternion-i b))
+          (racket:= (quaternion-j a) (quaternion-j b))
+          (racket:= (quaternion-k a) (quaternion-k b))))
    (define (hash-proc q callback)
-     (+ (* 1000000 (quaternion-r q)) (* 10000 (quaternion-i q)) (* 100 (quaternion-j q)) (quaternion-k q)))
+     (racket:+ (racket:* 1000000 (quaternion-r q)) (racket:* 10000 (quaternion-i q)) (racket:* 100 (quaternion-j q)) (quaternion-k q)))
    (define (hash2-proc q callback)
-     (+ (* 1000000 (quaternion-k q)) (* 10000 (quaternion-j q)) (* 100 (quaternion-i q)) (quaternion-r q)))]
+     (racket:+ (racket:* 1000000 (quaternion-k q)) (racket:* 10000 (quaternion-j q)) (racket:* 100 (quaternion-i q)) (quaternion-r q)))]
   #:methods gen:custom-write
   [(define (write-proc q port mode)
      (case mode
@@ -89,6 +89,7 @@
   (- qn . rem)
   (* qn . rem)
   (/ qn . rem)
+  (= qn . rem)
   #:fast-defaults ([quaternion?
                     (define/generic r* *)
                     (define/generic r/ /)
@@ -99,6 +100,11 @@
                     (define/generic rsqrt sqrt)
                     (define/generic rz? zero?)
                     (define/generic rang angle)
+                    (define/generic r= =)
+                    (define (= qn . rem)
+                      (or (empty? rem)
+                          (and (quaternion=? qn (car rem))
+                               (apply r= rem))))
                     (define (zero? q)
                       (and (racket:zero? (quaternion-r q))
                            (racket:zero? (quaternion-i q))
@@ -168,6 +174,7 @@
                (define/generic r* *)
                (define/generic r/ /)
                (define/generic rconj conjugate)
+               (define/generic r= =)
                (define zero? racket:zero?)
                (define conjugate racket:conjugate)
                (define magnitude racket:magnitude)
@@ -177,6 +184,12 @@
                (define expt racket:expt)
                (define sqrt racket:sqrt)
                (define sqr racket:sqr)
+               (define (= x . args)
+                 (cond [(empty? args) #t]
+                       [(quaternion? (car args))
+                        (and (quaternion=? (car args) x)
+                             (apply r= x (cdr args)))]
+                       [else (and (racket:= x (car args)) (apply r= args))]))
                (define (+ x . args)
                  (cond [(empty? args) x]
                        [(quaternion? (car args))
