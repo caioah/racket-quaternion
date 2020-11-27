@@ -1,5 +1,5 @@
 (require racket/generic
-         (prefix-in racket: (only-in racket conjugate magnitude angle exp log expt sqr sqrt zero? * + - / =)))
+         (prefix-in racket: (only-in conjugate magnitude angle exp log expt sqr sqrt zero? * + - / =)))
 (provide (struct-out quaternion) quaternion=? make-quaternion conjugate magnitude angle exp log expt sqr sqrt zero? * + - / =)
 (struct quaternion (r i j k)
   #:transparent #:mutable
